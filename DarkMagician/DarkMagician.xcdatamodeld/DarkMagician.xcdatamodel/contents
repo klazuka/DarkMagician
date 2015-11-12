@@ -1,4 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model name="Test1.xcdatamodel" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
-    <elements/>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="9057" systemVersion="15B42" minimumToolsVersion="Automatic">
+    <entity name="Account" syncable="YES">
+        <attribute name="accountID" attributeType="String" syncable="YES"/>
+        <attribute name="email" attributeType="String" syncable="YES"/>
+        <relationship name="folders" toMany="YES" deletionRule="Nullify" destinationEntity="Folder" inverseName="account" inverseEntity="Folder" syncable="YES"/>
+    </entity>
+    <entity name="Folder" syncable="YES">
+        <attribute name="folderID" attributeType="String" syncable="YES"/>
+        <attribute name="name" attributeType="String" syncable="YES"/>
+        <relationship name="account" maxCount="1" deletionRule="Nullify" destinationEntity="Account" inverseName="folders" inverseEntity="Account" syncable="YES"/>
+        <relationship name="messages" toMany="YES" deletionRule="Nullify" destinationEntity="Message" inverseName="folder" inverseEntity="Message" syncable="YES"/>
+    </entity>
+    <entity name="Message" syncable="YES">
+        <attribute name="body" attributeType="String" syncable="YES"/>
+        <attribute name="messageID" attributeType="String" syncable="YES"/>
+        <attribute name="timestamp" attributeType="Date" syncable="YES"/>
+        <relationship name="folder" maxCount="1" deletionRule="Nullify" destinationEntity="Folder" inverseName="messages" inverseEntity="Folder" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="Account" positionX="-63" positionY="-18" width="128" height="30"/>
+        <element name="Folder" positionX="-54" positionY="0" width="128" height="30"/>
+        <element name="Message" positionX="-36" positionY="9" width="128" height="30"/>
+    </elements>
 </model>
