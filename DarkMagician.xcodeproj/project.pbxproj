@@ -13,6 +13,7 @@
 		538FADF11BF4C9AF00D91DE6 /* DarkMagician.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 538FADEF1BF4C9AF00D91DE6 /* DarkMagician.xcdatamodeld */; };
 		538FADF31BF4C9AF00D91DE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 538FADF21BF4C9AF00D91DE6 /* Assets.xcassets */; };
 		538FADF61BF4C9AF00D91DE6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 538FADF41BF4C9AF00D91DE6 /* LaunchScreen.storyboard */; };
+		538FADFE1BF4DA3B00D91DE6 /* KStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538FADFD1BF4DA3B00D91DE6 /* KStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		538FADF21BF4C9AF00D91DE6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		538FADF51BF4C9AF00D91DE6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		538FADF71BF4C9AF00D91DE6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		538FADFD1BF4DA3B00D91DE6 /* KStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,7 @@
 				538FADF41BF4C9AF00D91DE6 /* LaunchScreen.storyboard */,
 				538FADF71BF4C9AF00D91DE6 /* Info.plist */,
 				538FADEF1BF4C9AF00D91DE6 /* DarkMagician.xcdatamodeld */,
+				538FADFD1BF4DA3B00D91DE6 /* KStore.swift */,
 			);
 			path = DarkMagician;
 			sourceTree = "<group>";
@@ -141,6 +144,7 @@
 				538FADF11BF4C9AF00D91DE6 /* DarkMagician.xcdatamodeld in Sources */,
 				538FADEB1BF4C9AF00D91DE6 /* ViewController.swift in Sources */,
 				538FADE91BF4C9AF00D91DE6 /* AppDelegate.swift in Sources */,
+				538FADFE1BF4DA3B00D91DE6 /* KStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

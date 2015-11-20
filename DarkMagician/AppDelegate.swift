@@ -39,7 +39,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
 //    let storeDetails = (type: NSSQLiteStoreType, filename: "DarkMagician.sqlite")
 //    let storeDetails = (type: NSInMemoryStoreType, filename: "DarkMagician.inmem")
-    let storeDetails = (type: NSBinaryStoreType, filename: "DarkMagician.binary")
+//    let storeDetails = (type: NSBinaryStoreType, filename: "DarkMagician.binary")
+    
+    let storeDetails = (type: kstoreType, filename: "DarkMagician.kstore")
+    NSPersistentStoreCoordinator.registerStoreClass(KStore.self, forStoreType:kstoreType)
     
     let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent(storeDetails.filename)
     var failureReason = "There was an error creating or loading the application's saved data."
