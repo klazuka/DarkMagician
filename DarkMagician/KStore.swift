@@ -3,20 +3,19 @@ import CoreData
 
 let kstoreType = "com.circle38.KStore"
 
-// TODO cleanup metadata
-var dummyMetadata: [String:AnyObject] = [
-  NSStoreTypeKey: kstoreType,
-  NSStoreUUIDKey: "1234-5678-abcd-efgh",
-  "objectCounter": 1 // monotonically increasing
-]
 
 class KStore: NSAtomicStore {
   
-    // TODO override?
-//  init(persistentStoreCoordinator coordinator: NSPersistentStoreCoordinator?,
-//    configurationName configurationName: String?,
-//    URL url: NSURL,
-//    options options: [NSObject : AnyObject]?)
+  override init(persistentStoreCoordinator coordinator: NSPersistentStoreCoordinator?, configurationName: String?, URL url: NSURL, options: [NSObject : AnyObject]?) {
+    
+    super.init(persistentStoreCoordinator: coordinator, configurationName: configurationName, URL: url, options: options)
+    
+    metadata = [
+      NSStoreTypeKey: kstoreType,
+      NSStoreUUIDKey: NSUUID().UUIDString,
+      "objectCounter": 1 // monotonically increasing
+    ]
+  }
   
   
   // MARK- required overrides for NSAtomicStore subclasses
@@ -35,7 +34,7 @@ class KStore: NSAtomicStore {
     
     print(topLevel)
     
-    dummyMetadata = topLevel["metadata"] as! [String:AnyObject]
+    metadata = topLevel["metadata"] as! [String:AnyObject]
     
     let objects = topLevel["objects"] as! [NSMutableDictionary]
     for obj in objects {
@@ -64,7 +63,7 @@ class KStore: NSAtomicStore {
     }
 
     let rootObject = ["objects": objectsToSave,
-                      "metadata": dummyMetadata]
+                      "metadata": metadata]
     let data = NSKeyedArchiver.archivedDataWithRootObject(rootObject)
     data.writeToURL(URL!, atomically: true)
   }
@@ -101,24 +100,18 @@ class KStore: NSAtomicStore {
   
   override var type: String { return kstoreType }
   
-  override var metadata: [String : AnyObject]! {
-    get { return dummyMetadata }
-    set { dummyMetadata = newValue }
-  }
+//  override var metadata: [String : AnyObject]! {
+//    get { return dummyMetadata }
+//    set { dummyMetadata = newValue }
+//  }
 
   override class func metadataForPersistentStoreWithURL(url: NSURL) throws -> [String : AnyObject] {
-    print("get metadata for store at \(url)")
-    return dummyMetadata
+    fatalError("not implemented")
   }
 
   /* Set the metadata of the store at url to metadata. Must be overriden by subclasses. */
   override class func setMetadata(metadata: [String : AnyObject]?, forPersistentStoreWithURL url: NSURL) throws {
-    print("setMetadata \(metadata) for store at \(url)")
-    if let newMetadata = metadata {
-        dummyMetadata = newMetadata
-    } else {
-        // TODO what to do if it's null?
-    }
+    fatalError("not implemented")
   }
   
 }
