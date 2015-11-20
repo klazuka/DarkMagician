@@ -3,8 +3,61 @@ import CoreData
 
 let kstoreType = "com.circle38.KStore"
 
-
 class KStore: NSAtomicStore {
+  
+  class KNode: NSAtomicStoreCacheNode {
+    var plistData: NSDictionary?
+    
+    override func valueForKey(key: String) -> AnyObject? {
+      if plistData != nil {
+        resolvePlistData()
+      }
+      return super.valueForKey(key)
+    }
+    
+    func resolvePlistData() {
+      guard let plistData = self.plistData else { return }
+      
+      propertyCache?.removeAllObjects()
+      let entity = objectID.entity
+      let resolvedProps = NSMutableDictionary()
+      
+      // resolve the attributes
+      for (attribName, _) in entity.attributesByName {
+        // TODO handle transformable
+        resolvedProps[attribName] = plistData.valueForKey(attribName)
+      }
+      
+      // resolve relationships
+      for (relationshipName, relationshipMetadata) in entity.relationshipsByName {
+        // each foreign key is an array "pair" (entityName: String, referenceID: Int)
+        let foreignKeys = plistData.valueForKey(relationshipName) as! [NSArray]
+        let atomicStore = objectID.persistentStore as! NSAtomicStore
+        let storeEntities = atomicStore.persistentStoreCoordinator!.managedObjectModel.entitiesByName
+        
+        // convert the foreign key references to cache nodes
+        let destNodes = foreignKeys.map { foreignKey -> NSAtomicStoreCacheNode in
+          let entityName = foreignKey[0] as! String
+          let refID = foreignKey[1] as! Int
+          let entity = storeEntities[entityName]!
+          let objectID = atomicStore.objectIDForEntity(entity, referenceObject: refID)
+          guard let destNode = atomicStore.cacheNodeForObjectID(objectID) else {
+            fatalError("referential integrity failure: couldn't find node for \(objectID)")
+          }
+          return destNode
+        }
+        
+        if destNodes.count > 0 {
+          resolvedProps[relationshipName] = relationshipMetadata.toMany
+            ? Set(destNodes)
+            : destNodes[0]
+        }
+      }
+      
+      self.propertyCache = resolvedProps
+      self.plistData = nil
+    }
+  }
   
   override init(persistentStoreCoordinator coordinator: NSPersistentStoreCoordinator?, configurationName: String?, URL url: NSURL, options: [NSObject : AnyObject]?) {
     
@@ -17,8 +70,53 @@ class KStore: NSAtomicStore {
     ]
   }
   
+  private func convertManagedObjectToPlistRepresentation(managedObject: NSManagedObject) -> NSDictionary {
+    return convertKVCObjectToPlistRepresentation(managedObject, entity: managedObject.entity)
+  }
   
-  // MARK- required overrides for NSAtomicStore subclasses
+  private func convertCacheNodeToPlistRepresentation(node: NSAtomicStoreCacheNode) -> NSDictionary {
+    let entity = node.objectID.entity
+    return convertKVCObjectToPlistRepresentation(node, entity: entity)
+  }
+  
+  private func convertKVCObjectToPlistRepresentation(kvcObject: NSObject, entity: NSEntityDescription) -> NSDictionary {
+    let plistDict = NSMutableDictionary()
+    
+    // store the attributes in a plist-safe way
+    for (attribName, _) in entity.attributesByName {
+      // TODO handle transformable
+      plistDict[attribName] = kvcObject.valueForKey(attribName)
+    }
+    
+    // make the relationship values plist-safe by creating foreign-key references
+    for (relationshipName, relationshipMetadata) in entity.relationshipsByName {
+      // I have to use the Foundation collections here because we're doing the whole plist thing
+      var foreignKeys = [NSArray]() // array of "pairs" (entityName: String, refID: Int)
+      let destObjects = NSMutableArray()
+      if relationshipMetadata.toMany {
+        destObjects.addObjectsFromArray(kvcObject.valueForKey(relationshipName)!.allObjects)
+      }
+      else {
+        destObjects.addObject(kvcObject.valueForKey(relationshipName)!)
+      }
+      
+      let entityName = relationshipMetadata.destinationEntity!.name!
+      for destObject in destObjects {
+        let objectID = destObject.valueForKey("objectID") as! NSManagedObjectID
+        let pair = NSMutableArray()
+        pair.addObject(entityName)
+        pair.addObject(referenceObjectForObjectID(objectID))
+        foreignKeys.append(pair)
+      }
+      
+      plistDict[relationshipName] = foreignKeys
+    }
+    
+    return plistDict
+  }
+  
+  
+  // MARK:- required overrides for NSAtomicStore subclasses
   
   override func load() throws {
     
@@ -37,28 +135,31 @@ class KStore: NSAtomicStore {
     metadata = topLevel["metadata"] as! [String:AnyObject]
     
     let objects = topLevel["objects"] as! [NSMutableDictionary]
+    var loadedNodes = Set<KNode>()
     for obj in objects {
-      let entityName = obj["__entityName"] as! String
+      let entityName = obj["entityName"] as! String
       let entity = persistentStoreCoordinator!.managedObjectModel.entitiesByName[entityName]!
-      let referenceID = obj["__referenceID"]!
+      let referenceID = obj["referenceID"]!
       let objectID = objectIDForEntity(entity, referenceObject: referenceID)
-      let node = NSAtomicStoreCacheNode(objectID: objectID)
-      node.propertyCache = obj
-      addCacheNodes(Set([node]))
+      let node = KNode(objectID: objectID)
+      node.plistData = obj["plistData"] as? NSDictionary
+      loadedNodes.insert(node)
+    }
+    
+    addCacheNodes(loadedNodes)
+    for node in loadedNodes {
+      node.resolvePlistData()
     }
   }
   
   override func save() throws {
     
+    // convert each cache node into its external, plist-safe representation
     let objectsToSave = cacheNodes().map { (node) -> NSMutableDictionary in
-      let props = node.propertyCache!
-      props["__entityName"] = node.objectID.entity.name!
-      props["__referenceID"] = referenceObjectForObjectID(node.objectID)
-      for (k,v) in props {
-        let k2 = k as! String
-        props[k2] = v
-        // TODO handle relationships
-      }
+      let props = NSMutableDictionary()
+      props["entityName"] = node.objectID.entity.name!
+      props["referenceID"] = referenceObjectForObjectID(node.objectID)
+      props["plistData"] = convertCacheNodeToPlistRepresentation(node)
       return props
     }
 
@@ -69,6 +170,7 @@ class KStore: NSAtomicStore {
   }
   
   override func newReferenceObjectForManagedObject(managedObject: NSManagedObject) -> AnyObject {
+    // at this point the managed object has temporary objectIDs
     let counter = metadata["objectCounter"] as! Int
     metadata["objectCounter"] = counter + 1
     return counter
@@ -77,33 +179,20 @@ class KStore: NSAtomicStore {
   override func newCacheNodeForManagedObject(managedObject: NSManagedObject) -> NSAtomicStoreCacheNode {
     // at this point the managed object (and its relationships) all have permanent objectIDs
     let objectID = managedObject.objectID
-    let node = NSAtomicStoreCacheNode(objectID: objectID)
-    
-    for (keyPath, newValue) in managedObject.changedValues() {
-      node.setValue(newValue, forKey: keyPath)
-    }
-    
-    // TODO I don't think I need to do add the cache node here since I'm returning it to the framework/caller
-    addCacheNodes(Set([node]))
-    
+    let node = KNode(objectID: objectID)
+    node.plistData = convertManagedObjectToPlistRepresentation(managedObject)
     return node
   }
   
   override func updateCacheNode(node: NSAtomicStoreCacheNode, fromManagedObject managedObject: NSManagedObject) {
-    for (keyPath, newValue) in managedObject.changedValues() {
-      node.setValue(newValue, forKey: keyPath)
-    }
+    let node = node as! KNode
+    node.plistData = convertManagedObjectToPlistRepresentation(managedObject)
   }
   
   
   // MARK:- required overrides for NSPersistentStore subclasses
   
   override var type: String { return kstoreType }
-  
-//  override var metadata: [String : AnyObject]! {
-//    get { return dummyMetadata }
-//    set { dummyMetadata = newValue }
-//  }
 
   override class func metadataForPersistentStoreWithURL(url: NSURL) throws -> [String : AnyObject] {
     fatalError("not implemented")
