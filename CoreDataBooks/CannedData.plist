@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>books</key>
+	<array>
+		<dict>
+			<key>author</key>
+			<string>Douglas Coupland</string>
+			<key>title</key>
+			<string>Generation X</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+		<dict>
+			<key>author</key>
+			<string>Douglas Coupland</string>
+			<key>title</key>
+			<string>Shampoo Planet</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+		<dict>
+			<key>author</key>
+			<string>Douglas Coupland</string>
+			<key>title</key>
+			<string>Microserfs</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+		<dict>
+			<key>author</key>
+			<string>Iain M. Banks</string>
+			<key>title</key>
+			<string>Use of Weapons</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+		<dict>
+			<key>author</key>
+			<string>Iain M. Banks</string>
+			<key>title</key>
+			<string>Consider Phlebas</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+		<dict>
+			<key>author</key>
+			<string>Jeff Smith</string>
+			<key>title</key>
+			<string>Bone</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+		<dict>
+			<key>author</key>
+			<string>James Joyce</string>
+			<key>title</key>
+			<string>Ulysses</string>
+			<key>copyright</key>
+			<date>2015-11-17T20:46:08Z</date>
+		</dict>
+	</array>
+</dict>
+</plist>
